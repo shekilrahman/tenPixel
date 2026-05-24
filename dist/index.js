@@ -538,7 +538,7 @@ var useCanvasInteraction = (initialCrop, imageWidth, imageHeight, canvasWidth, c
     if (canvasWidth === 0 || canvasHeight === 0) return;
     const coords = getMappedCoords(e.clientX, e.clientY, e.currentTarget);
     const renderScale = imageWidth / canvasWidth;
-    const threshold = 20 * renderScale;
+    const threshold = 28 * renderScale;
     const isNW = Math.abs(coords.x - crop.x) < threshold && Math.abs(coords.y - crop.y) < threshold;
     const isNE = Math.abs(coords.x - (crop.x + crop.width)) < threshold && Math.abs(coords.y - crop.y) < threshold;
     const isSW = Math.abs(coords.x - crop.x) < threshold && Math.abs(coords.y - (crop.y + crop.height)) < threshold;
@@ -678,23 +678,29 @@ var CropCanvas = ({ image, onCropChange, aspectRatio, initialCrop }) => {
   useEffect2(() => {
     if (!containerRef.current || !canvasRef.current || !overlayCanvasRef.current) return;
     const container = containerRef.current;
-    const maxWidth = container.clientWidth;
-    const maxHeight = 500;
-    let renderWidth = image.width;
-    let renderHeight = image.height;
-    if (renderWidth > maxWidth) {
-      renderHeight = renderHeight * maxWidth / renderWidth;
-      renderWidth = maxWidth;
-    }
-    if (renderHeight > maxHeight) {
-      renderWidth = renderWidth * maxHeight / renderHeight;
-      renderHeight = maxHeight;
-    }
-    setDimensions({ width: renderWidth, height: renderHeight });
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    drawImageToCanvas(canvas, image, void 0, { width: renderWidth, height: renderHeight });
+    const handleResize = () => {
+      const maxWidth = container.clientWidth;
+      const maxHeight = container.clientHeight;
+      if (maxWidth === 0 || maxHeight === 0) return;
+      let renderWidth = image.width;
+      let renderHeight = image.height;
+      const scale = Math.min(maxWidth / renderWidth, maxHeight / renderHeight);
+      renderWidth = Math.floor(renderWidth * scale);
+      renderHeight = Math.floor(renderHeight * scale);
+      setDimensions({ width: renderWidth, height: renderHeight });
+      if (canvas) {
+        drawImageToCanvas(canvas, image, void 0, { width: renderWidth, height: renderHeight });
+      }
+    };
+    handleResize();
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(container);
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, [image]);
   useEffect2(() => {
     if (!overlayCanvasRef.current || dimensions.width === 0) return;
@@ -719,12 +725,19 @@ var CropCanvas = ({ image, onCropChange, aspectRatio, initialCrop }) => {
     ctx.lineWidth = 2;
     ctx.strokeRect(renderCrop.x, renderCrop.y, renderCrop.width, renderCrop.height);
     ctx.fillStyle = "#3b82f6";
-    const handleSize = 10;
-    const half = handleSize / 2;
-    ctx.fillRect(renderCrop.x - half, renderCrop.y - half, handleSize, handleSize);
-    ctx.fillRect(renderCrop.x + renderCrop.width - half, renderCrop.y - half, handleSize, handleSize);
-    ctx.fillRect(renderCrop.x - half, renderCrop.y + renderCrop.height - half, handleSize, handleSize);
-    ctx.fillRect(renderCrop.x + renderCrop.width - half, renderCrop.y + renderCrop.height - half, handleSize, handleSize);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    const handleRadius = 7;
+    const drawHandle = (cx, cy) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, handleRadius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+    };
+    drawHandle(renderCrop.x, renderCrop.y);
+    drawHandle(renderCrop.x + renderCrop.width, renderCrop.y);
+    drawHandle(renderCrop.x, renderCrop.y + renderCrop.height);
+    drawHandle(renderCrop.x + renderCrop.width, renderCrop.y + renderCrop.height);
     ctx.beginPath();
     ctx.strokeStyle = "rgba(255,255,255,0.4)";
     ctx.lineWidth = 1;
@@ -738,7 +751,7 @@ var CropCanvas = ({ image, onCropChange, aspectRatio, initialCrop }) => {
     ctx.lineTo(renderCrop.x + renderCrop.width, renderCrop.y + renderCrop.height / 3 * 2);
     ctx.stroke();
   }, [crop, dimensions, image.width, image.height]);
-  return /* @__PURE__ */ jsx2("div", { ref: containerRef, className: "relative w-full flex justify-center items-center bg-gray-950 rounded-xl overflow-hidden shadow-inner touch-none", children: /* @__PURE__ */ jsxs2("div", { className: "relative", style: { width: dimensions.width, height: dimensions.height }, children: [
+  return /* @__PURE__ */ jsx2("div", { ref: containerRef, className: "relative w-full h-full flex justify-center items-center bg-gray-950 rounded-xl overflow-hidden shadow-inner touch-none", children: /* @__PURE__ */ jsxs2("div", { className: "relative", style: { width: dimensions.width, height: dimensions.height }, children: [
     /* @__PURE__ */ jsx2("canvas", { ref: canvasRef, className: "absolute top-0 left-0" }),
     /* @__PURE__ */ jsx2(
       "canvas",

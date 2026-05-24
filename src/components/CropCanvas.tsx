@@ -35,30 +35,41 @@ export const CropCanvas: React.FC<CropCanvasProps> = ({ image, onCropChange, asp
     if (!containerRef.current || !canvasRef.current || !overlayCanvasRef.current) return;
 
     const container = containerRef.current;
-    const maxWidth = container.clientWidth;
-    const maxHeight = 500; // max preview height
-
-    let renderWidth = image.width;
-    let renderHeight = image.height;
-
-    if (renderWidth > maxWidth) {
-      renderHeight = (renderHeight * maxWidth) / renderWidth;
-      renderWidth = maxWidth;
-    }
-
-    if (renderHeight > maxHeight) {
-      renderWidth = (renderWidth * maxHeight) / renderHeight;
-      renderHeight = maxHeight;
-    }
-
-    setDimensions({ width: renderWidth, height: renderHeight });
-
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
 
-    drawImageToCanvas(canvas, image, undefined, { width: renderWidth, height: renderHeight });
+    const handleResize = () => {
+      const maxWidth = container.clientWidth;
+      const maxHeight = container.clientHeight;
 
+      if (maxWidth === 0 || maxHeight === 0) return;
+
+      let renderWidth = image.width;
+      let renderHeight = image.height;
+
+      // Scale to fit perfectly within BOTH maxWidth and maxHeight of parent
+      const scale = Math.min(maxWidth / renderWidth, maxHeight / renderHeight);
+      renderWidth = Math.floor(renderWidth * scale);
+      renderHeight = Math.floor(renderHeight * scale);
+
+      setDimensions({ width: renderWidth, height: renderHeight });
+
+      if (canvas) {
+        drawImageToCanvas(canvas, image, undefined, { width: renderWidth, height: renderHeight });
+      }
+    };
+
+    // Run once initially
+    handleResize();
+
+    // Responsive element resizing
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, [image]);
 
   useEffect(() => {
@@ -95,14 +106,23 @@ export const CropCanvas: React.FC<CropCanvasProps> = ({ image, onCropChange, asp
     ctx.lineWidth = 2;
     ctx.strokeRect(renderCrop.x, renderCrop.y, renderCrop.width, renderCrop.height);
 
-    // Draw handles
+    // Draw modern, premium circular handles with white borders
     ctx.fillStyle = '#3b82f6'; // blue-500
-    const handleSize = 10;
-    const half = handleSize / 2;
-    ctx.fillRect(renderCrop.x - half, renderCrop.y - half, handleSize, handleSize);
-    ctx.fillRect(renderCrop.x + renderCrop.width - half, renderCrop.y - half, handleSize, handleSize);
-    ctx.fillRect(renderCrop.x - half, renderCrop.y + renderCrop.height - half, handleSize, handleSize);
-    ctx.fillRect(renderCrop.x + renderCrop.width - half, renderCrop.y + renderCrop.height - half, handleSize, handleSize);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    const handleRadius = 7; // 14px diameter
+
+    const drawHandle = (cx: number, cy: number) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, handleRadius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+    };
+
+    drawHandle(renderCrop.x, renderCrop.y);
+    drawHandle(renderCrop.x + renderCrop.width, renderCrop.y);
+    drawHandle(renderCrop.x, renderCrop.y + renderCrop.height);
+    drawHandle(renderCrop.x + renderCrop.width, renderCrop.y + renderCrop.height);
 
     // Draw grid lines
     ctx.beginPath();
@@ -123,7 +143,7 @@ export const CropCanvas: React.FC<CropCanvasProps> = ({ image, onCropChange, asp
   }, [crop, dimensions, image.width, image.height]);
 
   return (
-    <div ref={containerRef} className="relative w-full flex justify-center items-center bg-gray-950 rounded-xl overflow-hidden shadow-inner touch-none">
+    <div ref={containerRef} className="relative w-full h-full flex justify-center items-center bg-gray-950 rounded-xl overflow-hidden shadow-inner touch-none">
       <div className="relative" style={{ width: dimensions.width, height: dimensions.height }}>
         <canvas ref={canvasRef} className="absolute top-0 left-0" />
         <canvas

@@ -176,38 +176,44 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col font-sans">
-      <header className="px-8 py-5 border-b border-gray-800 bg-gray-900/40 backdrop-blur-md flex justify-between items-center sticky top-0 z-50 transition-all">
-        <div className="flex items-center gap-4">
+      <header className="px-4 sm:px-8 py-3.5 sm:py-5 border-b border-gray-800 bg-gray-900/40 backdrop-blur-md flex flex-col md:flex-row gap-3.5 md:gap-0 justify-between items-center sticky top-0 z-50 transition-all">
+        <div className="flex w-full md:w-auto justify-between items-center gap-4">
           <div className="flex items-center gap-2.5">
             <img 
               src={logoUrl} 
               alt="tenPixel logo" 
-              className="w-9 h-9 rounded-xl border border-gray-700/80 p-0.5 object-cover shadow-[0_0_15px_rgba(59,130,246,0.15)] select-none pointer-events-none"
+              className="w-8 h-8 sm:w-9 h-9 rounded-xl border border-gray-700/80 p-0.5 object-cover shadow-[0_0_15px_rgba(59,130,246,0.15)] select-none pointer-events-none"
             />
-            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-gray-100 to-gray-400 bg-clip-text text-transparent cursor-default select-none">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-gray-100 to-gray-400 bg-clip-text text-transparent cursor-default select-none">
               tenPixel
             </h1>
+          </div>
+
+          {/* Persistent Stats Counter - visible only on mobile inside the first row */}
+          <div className="flex md:hidden items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full px-2.5 py-0.5 text-[10px] text-blue-300 font-semibold select-none shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+            <Zap className="w-2.5 h-2.5 text-blue-400 animate-pulse" />
+            <span>{compressionCount} Optimized</span>
           </div>
         </div>
 
         {/* Tab Selection */}
-        <div className="flex bg-gray-950 p-1 rounded-xl border border-gray-850 shadow-inner">
+        <div className="flex bg-gray-950 p-1 rounded-xl border border-gray-850 shadow-inner w-full md:w-auto">
           <button
             onClick={() => setActiveTab('app')}
-            className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${activeTab === 'app' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-gray-400 hover:text-white'}`}
+            className={`flex-1 md:flex-none text-center px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${activeTab === 'app' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-gray-400 hover:text-white'}`}
           >
             Processor
           </button>
           <button
             onClick={() => setActiveTab('sdk')}
-            className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${activeTab === 'sdk' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-gray-400 hover:text-white'}`}
+            className={`flex-1 md:flex-none text-center px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${activeTab === 'sdk' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-gray-400 hover:text-white'}`}
           >
             Developer Portal
           </button>
         </div>
         
-        <div className="flex gap-4 items-center">
-          {/* Persistent Stats Counter */}
+        {/* Persistent Stats Counter - visible only on desktop */}
+        <div className="hidden md:flex gap-4 items-center">
           <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-3 py-1 text-[11px] text-blue-300 font-semibold select-none shadow-[0_0_15px_rgba(59,130,246,0.1)] animate-in fade-in duration-300">
             <Zap className="w-3 h-3 text-blue-400 animate-pulse" />
             <span>{compressionCount} Images Optimized</span>
@@ -215,12 +221,12 @@ function App() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl w-full mx-auto p-8 flex flex-col gap-8 justify-center">
+      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-8 flex flex-col gap-6 sm:gap-8 justify-center">
         {activeTab === 'app' ? (
           <>
             {step === 'config' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800 shadow-xl flex flex-col gap-6">
+                <div className="bg-gray-900 rounded-2xl p-5 sm:p-8 border border-gray-800 shadow-xl flex flex-col gap-6">
                   <div className="flex flex-col gap-2 border-b border-gray-800 pb-4">
                     <h2 className="text-2xl font-semibold flex items-center gap-2">
                       <Settings className="w-6 h-6 text-blue-500" />
@@ -296,8 +302,14 @@ function App() {
             )}
 
             {step === 'crop' && imageBitmap && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-6">
-                <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800 shadow-xl flex flex-col gap-6">
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-4">
+                <div className="flex justify-between items-center px-2">
+                  <button onClick={resetToUpload} className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1.5">
+                    ← Upload Different Image
+                  </button>
+                </div>
+
+                <div className="bg-gray-900 rounded-2xl p-5 sm:p-8 border border-gray-800 shadow-xl flex flex-col gap-6">
                   <div className="flex flex-col gap-2 border-b border-gray-800 pb-4">
                     <h2 className="text-2xl font-semibold flex items-center gap-2">
                       <Scissors className="w-6 h-6 text-blue-500" />
@@ -306,7 +318,7 @@ function App() {
                     <p className="text-gray-400">Position your image inside the grid boundary to fit the target aspect ratio perfectly.</p>
                   </div>
 
-                  <div className="w-full aspect-[4/3] rounded-xl overflow-hidden border border-gray-800 bg-black flex justify-center items-center">
+                  <div className="w-full h-[320px] sm:h-[450px] rounded-xl overflow-hidden border border-gray-800 bg-black flex justify-center items-center">
                     <CropCanvas
                       image={imageBitmap}
                       aspectRatio={aspectRatio}
@@ -315,20 +327,29 @@ function App() {
                     />
                   </div>
 
-                  <button
-                    onClick={handleProcess}
-                    disabled={loading}
-                    className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all active:scale-95 flex items-center justify-center"
-                  >
-                    {loading ? `Processing (${progress}%)...` : 'Process & Generate Final Image'}
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-4 mt-2">
+                    <button
+                      onClick={resetToUpload}
+                      disabled={loading}
+                      className="flex-1 py-4 rounded-xl bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 font-medium text-white transition-colors active:scale-95 flex items-center justify-center gap-1.5 order-2 sm:order-1"
+                    >
+                      Cancel & Reupload
+                    </button>
+                    <button
+                      onClick={handleProcess}
+                      disabled={loading}
+                      className="flex-[2] py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all active:scale-95 flex items-center justify-center order-1 sm:order-2"
+                    >
+                      {loading ? `Processing (${progress}%)...` : 'Process & Generate Final Image'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
             {step === 'result' && result && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-6">
-                <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800 shadow-xl flex flex-col gap-8">
+                <div className="bg-gray-900 rounded-2xl p-5 sm:p-8 border border-gray-800 shadow-xl flex flex-col gap-8">
                   <div className="flex flex-col gap-2 items-center text-center">
                     <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-2">
                       <DownloadCloud className="w-8 h-8" />
@@ -390,7 +411,7 @@ function App() {
           </>
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
-            <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800 shadow-xl flex flex-col gap-6">
+            <div className="bg-gray-900 rounded-2xl p-5 sm:p-8 border border-gray-800 shadow-xl flex flex-col gap-6">
               <div className="flex flex-col gap-2 border-b border-gray-800 pb-4">
                 <h2 className="text-2xl font-bold flex items-center gap-2.5 text-white">
                   <BookOpen className="w-6 h-6 text-blue-500" />

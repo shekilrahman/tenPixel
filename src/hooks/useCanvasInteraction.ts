@@ -33,7 +33,8 @@ export const useCanvasInteraction = (
     if (canvasWidth === 0 || canvasHeight === 0) return;
     const coords = getMappedCoords(e.clientX, e.clientY, e.currentTarget);
     const renderScale = imageWidth / canvasWidth;
-    const threshold = 20 * renderScale; 
+    // Larger grab threshold (28px) on touch/pointer for super easy and forgiving dragging
+    const threshold = 28 * renderScale; 
 
     const isNW = Math.abs(coords.x - crop.x) < threshold && Math.abs(coords.y - crop.y) < threshold;
     const isNE = Math.abs(coords.x - (crop.x + crop.width)) < threshold && Math.abs(coords.y - crop.y) < threshold;
